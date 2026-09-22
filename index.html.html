@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Comercial High Performance - Life Apps</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx reader) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#0058A3',
+                            green: '#4CAF50',
+                            darkBlue: '#003A6D',
+                            lightBg: '#F4F7FA'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .active-kpi {
+            ring-2px: true;
+            border-color: #0058A3 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 88, 163, 0.2);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <!-- SVG Brand Logo derived from Life Apps -->
+                <div class="flex items-center gap-2">
+                    <svg class="h-9 w-auto" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Bars -->
+                        <rect x="10" y="65" width="22" height="25" rx="3" fill="#4CAF50" />
+                        <rect x="42" y="40" width="22" height="50" rx="3" fill="#4CAF50" />
+                        <rect x="74" y="52" width="22" height="38" rx="3" fill="#4CAF50" />
+                        <!-- Text: life -->
+                        <path d="M112 12 H128 V88 H112 Z" fill="#0058A3"/>
+                        <path d="M142 32 H158 V88 H142 Z" fill="#0058A3"/>
+                        <circle cx="150" cy="18" r="8" fill="#0058A3"/>
+                        <path d="M172 32 H200 V44 H172 V88 H156 V12 H202 V24 H172 Z" fill="#0058A3"/>
+                        <path d="M210 58 C210 42 222 30 238 30 C254 30 266 42 266 58 V62 H226 C228 72 234 78 244 78 C250 78 256 75 260 70 L266 80 C260 87 250 90 238 90 C222 90 210 78 210 58 Z M250 52 C248 44 242 40 236 40 C230 40 226 44 224 52 Z" fill="#0058A3"/>
+                        <!-- Text: apps -->
+                        <text x="275" y="85" font-family="Arial, sans-serif" font-weight="bold" font-size="48" fill="#4CAF50">apps</text>
+                    </svg>
+                </div>
+                <span class="hidden md:inline-block h-6 w-px bg-gray-300"></span>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-900 leading-tight">Painel de Gestão Comercial</h1>
+                    <p class="text-xs text-gray-500">Indicadores Macro & Micro de Alta Performance</p>
+                </div>
+            </div>
+
+            <!-- Actions / Status -->
+            <div class="flex items-center gap-3">
+                <div id="fileStatus" class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium border border-blue-200 flex items-center gap-1.5">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
+                    <span>Carregando dados da planilha...</span>
+                </div>
+                <label class="cursor-pointer text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-gray-500"></i>
+                    <span>Importar XLSX</span>
+                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden">
+                </label>
+                <button onclick="reloadSourceFile()" title="Recarregar do Servidor" class="p-1.5 text-gray-500 hover:text-brand-blue hover:bg-gray-100 rounded-lg transition">
+                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
+
+        <!-- Global Filters Bar -->
+        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 items-center justify-between">
+            <div class="flex items-center gap-2 text-brand-blue font-semibold text-sm">
+                <i data-lucide="filter" class="w-4 h-4"></i>
+                <span>Filtros Globais:</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 flex-1 max-w-5xl">
+                <!-- Filter Vendedor -->
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Vendedor (Closer)</label>
+                    <select id="filterVendedor" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                
+                <!-- Filter BDR -->
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">BDR (SDR)</label>
+                    <select id="filterBdr" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <!-- Filter Origem -->
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Origem</label>
+                    <select id="filterOrigem" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
+
+                <!-- Filter Estágio -->
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Estágio/Status</label>
+                    <select id="filterEstagio" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+
+                <!-- Filter Ano/Mês -->
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Ano</label>
+                    <select id="filterAno" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
+                        <option value="">Todos os Anos</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="resetFilters()" class="text-xs text-gray-500 hover:text-red-600 underline font-medium self-end py-2 px-1">
+                Limpar
+            </button>
+        </section>
+
+        <!-- MACRO KPI Cards (Interactive Filter) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Criadas -->
+            <div onclick="selectKpiFilter('todas')" id="kpi-todas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-brand-blue transition relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Criadas (Total)</span>
+                    <div class="p-2 bg-blue-50 text-brand-blue rounded-lg group-hover:bg-brand-blue group-hover:text-white transition">
+                        <i data-lucide="folder-plus" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiCriadasVal" class="text-2xl font-black text-gray-900">0</span>
+                    <span id="kpiCriadasValor" class="text-xs text-gray-500 font-medium">R$ 0</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">Clique para ver todas</p>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue"></div>
+            </div>
+
+            <!-- Ganhas -->
+            <div onclick="selectKpiFilter('ganhas')" id="kpi-ganhas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-green-600 transition relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-green-600">Ganhas</span>
+                    <div class="p-2 bg-green-50 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-white transition">
+                        <i data-lucide="trophy" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiGanhasVal" class="text-2xl font-black text-gray-900">0</span>
+                    <span id="kpiGanhasValor" class="text-xs text-green-600 font-semibold">R$ 0</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">Taxa de Win: <span id="kpiWinRate" class="font-bold">0%</span></p>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-brand-green"></div>
+            </div>
+
+            <!-- Perdidas -->
+            <div onclick="selectKpiFilter('perdidas')" id="kpi-perdidas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-red-500 transition relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">Perdidas</span>
+                    <div class="p-2 bg-red-50 text-red-500 rounded-lg group-hover:bg-red-500 group-hover:text-white transition">
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiPerdidasVal" class="text-2xl font-black text-gray-900">0</span>
+                    <span id="kpiPerdidasValor" class="text-xs text-red-500 font-medium">R$ 0</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">Oportunidades encerradas</p>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-500"></div>
+            </div>
+
+            <!-- Abertas -->
+            <div onclick="selectKpiFilter('abertas')" id="kpi-abertas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-amber-500 transition relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Em Aberto</span>
+                    <div class="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-500 group-hover:text-white transition">
+                        <i data-lucide="clock" class="w-5 h-5"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="kpiAbertasVal" class="text-2xl font-black text-gray-900">0</span>
+                    <span id="kpiAbertasValor" class="text-xs text-amber-600 font-medium">R$ 0</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">Funil em andamento</p>
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-amber-500"></div>
+            </div>
+
+            <!-- Pipeline Total -->
+            <div class="bg-gradient-to-br from-brand-darkBlue to-brand-blue p-4 rounded-xl border border-gray-200 shadow-sm text-white flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-100">Ticket Médio</span>
+                    <i data-lucide="dollar-sign" class="w-5 h-5 text-green-400"></i>
+                </div>
+                <div class="mt-2">
+                    <div id="kpiTicketMedio" class="text-2xl font-black">R$ 0</div>
+                    <p class="text-[10px] text-blue-200 mt-1">Valor Médio por Contrato Ganhos</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CHARTS SECTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Monthly Seller Performance -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                            <i data-lucide="user-check" class="w-4 h-4 text-brand-blue"></i>
+                            Performance de Vendedores
+                        </h3>
+                        <p class="text-xs text-gray-400">Ganhos/Criados por Mês</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full">
+                    <canvas id="chartVendedores"></canvas>
+                </div>
+            </div>
+
+            <!-- Origem Performance -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-brand-green"></i>
+                            Oportunidades por Origem
+                        </h3>
+                        <p class="text-xs text-gray-400">Canais de Aquisição</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full">
+                    <canvas id="chartOrigem"></canvas>
+                </div>
+            </div>
+
+            <!-- Monthly BDR Performance -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-brand-blue"></i>
+                            Performance Mensal de BDRs
+                        </h3>
+                        <p class="text-xs text-gray-400">Geração de Pipeline</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full">
+                    <canvas id="chartBdr"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MICRO DETAILED TABLE -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+            <!-- Table Header / Actions -->
+            <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <i data-lucide="table" class="w-4 h-4 text-brand-blue"></i>
+                        Detalhamento de Contas e Oportunidades (Micro)
+                    </h3>
+                    <p class="text-xs text-gray-500">Exibindo registros com base nos filtros selecionados acima</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Buscar conta, oportunidade..." class="pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-brand-blue focus:border-brand-blue w-64">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5"></i>
+                    </div>
+                    <button onclick="exportToCSV()" class="text-xs bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-gray-500"></i>
+                        <span>Exportar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Responsive Container -->
+            <div class="overflow-x-auto max-h-[500px]">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-gray-100 sticky top-0 z-10 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider">
+                        <tr>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Conta/Cliente')">Conta / Cliente <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Oportunidade')">Oportunidade <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Estágio/Status')">Estágio <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Valor')">Valor <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Data de Criação')">Data <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Vendedor')">Vendedor <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('BDR')">BDR <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Origem')">Origem <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-200 bg-white">
+                        <!-- Dynamic Rows -->
+                        <tr>
+                            <td colspan="8" class="text-center py-8 text-gray-400">Aguardando dados...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer Pagination -->
+            <div class="p-3 bg-gray-50 border-t border-gray-200 flex flex-wrap justify-between items-center text-xs text-gray-500">
+                <div id="tableInfo">Mostrando 0 de 0 registros</div>
+                <div class="flex items-center gap-2">
+                    <button onclick="prevPage()" id="btnPrev" class="px-2.5 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50">Anterior</button>
+                    <span id="pageIndicator">Página 1</span>
+                    <button onclick="nextPage()" id="btnNext" class="px-2.5 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50">Próxima</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-400 mt-auto">
+        Life Apps &copy; 2026 — Painel de Gestão Comercial Integrado
+    </footer>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // Global State Variables
+        let rawData = [];
+        let filteredData = [];
+        let activeKpiFilter = 'todas'; // 'todas', 'ganhas', 'perdidas', 'abertas'
+        let sortColumn = '';
+        let sortAsc = true;
+        let currentPage = 1;
+        const pageSize = 15;
+
+        // Chart instances
+        let chartVendedoresObj = null;
+        let chartOrigemObj = null;
+        let chartBdrObj = null;
+
+        // Default Excel Filename on Server
+        const SERVER_EXCEL_FILENAME = 'report-6ff30be5-470a-4eed-b308-76d3a1022541.xlsx';
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // On Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            reloadSourceFile();
+            
+            // Listener for file input upload (Manual Override)
+            document.getElementById('excelFileInput').addEventListener('change', handleFileUpload);
+        });
+
+        // Load Excel File from Root Server
+        function reloadSourceFile() {
+            updateStatus('Carregando planilha do servidor...', 'loading');
+            fetch(SERVER_EXCEL_FILENAME)
+                .then(response => {
+                    if (!response.ok) throw new Error("Planilha padrão não encontrada no servidor raiz.");
+                    return response.arrayBuffer();
+                })
+                .then(buffer => {
+                    processExcelBuffer(buffer);
+                    updateStatus('Planilha atualizada do servidor', 'success');
+                })
+                .catch(err => {
+                    console.warn(err);
+                    updateStatus('Aguardando planilha (use o botão Importar XLSX)', 'warning');
+                    // Load mock sample data if fetch fails (for demonstration)
+                    loadMockData();
+                });
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            updateStatus('Lendo arquivo local...', 'loading');
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    processExcelBuffer(evt.target.result);
+                    updateStatus(`Carregado: ${file.name}`, 'success');
+                } catch (error) {
+                    alert("Erro ao processar planilha. Verifique o formato.");
+                    updateStatus('Erro na leitura', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Process XLSX Buffer
+        function processExcelBuffer(buffer) {
+            const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+            rawData = json.map(row => normalizeRow(row));
+            populateFiltersOptions();
+            applyFilters();
+        }
+
+        // Normalize Data Fields from Spreadsheets with dynamic key mapping
+        function normalizeRow(row) {
+            const getVal = (possibleKeys) => {
+                for (let key of possibleKeys) {
+                    const found = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
+                    if (found && row[found] !== undefined && row[found] !== null) return row[found];
+                }
+                return '';
+            };
+
+            const rawDate = getVal(['Data de Criação', 'Data Criacao', 'Data', 'Created Date', 'Data Fechamento']);
+            let formattedDate = 'N/I';
+            let year = 'N/I';
+            let month = 'N/I';
+
+            if (rawDate instanceof Date) {
+                formattedDate = rawDate.toLocaleDateString('pt-BR');
+                year = rawDate.getFullYear().toString();
+                month = rawDate.toLocaleString('pt-BR', { month: 'short' });
+            } else if (typeof rawDate === 'string' && rawDate.trim() !== '') {
+                formattedDate = rawDate;
+                const parts = rawDate.split(/[\/-]/);
+                if (parts.length === 3) {
+                    year = parts[2].length === 4 ? parts[2] : '20' + parts[2];
+                }
+            }
+
+            const rawVal = getVal(['Valor', 'Value', 'Valor Oportunidade', 'Montante', 'Amount']);
+            let numVal = 0;
+            if (typeof rawVal === 'number') numVal = rawVal;
+            else if (typeof rawVal === 'string') {
+                numVal = parseFloat(rawVal.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            }
+
+            const estagio = String(getVal(['Estágio/Status', 'Estágio', 'Estagio', 'Status', 'Fase', 'Stage'])).trim();
+
+            return {
+                conta: String(getVal(['Conta/Cliente', 'Conta', 'Cliente', 'Account', 'Empresa']) || 'N/A').trim(),
+                oportunidade: String(getVal(['Oportunidade', 'Nome Oportunidade', 'Opportunity', 'Titulo']) || 'Sem Título').trim(),
+                estagio: estagio || 'Em Aberto',
+                valor: numVal,
+                data: formattedDate,
+                ano: year,
+                mes: month,
+                vendedor: String(getVal(['Vendedor', 'Closer', 'Dono da Oportunidade', 'Owner']) || 'Não Atribuído').trim(),
+                bdr: String(getVal(['BDR', 'SDR', 'Pré-vendas', 'Pre-vendas']) || 'Não Atribuído').trim(),
+                origem: String(getVal(['Origem', 'Lead Source', 'Canal', 'Origem Oportunidade']) || 'Outros').trim(),
+                rawRow: row
+            };
+        }
+
+        // Mock Generator fallback if no local file or server file is present initially
+        function loadMockData() {
+            const vendedores = ['Carlos Silva', 'Ana Souza', 'Mariana Lima', 'Roberto Alves'];
+            const bdrs = ['Felipe Melo', 'Beatriz Costa', 'Lucas Rocha'];
+            const origens = ['Inbound', 'Outbound', 'Indicação', 'Eventos', 'Parceiros'];
+            const estagios = ['Ganho', 'Perdido', 'Proposta', 'Em Negociação', 'Qualificado'];
+
+            const mock = [];
+            for (let i = 1; i <= 120; i++) {
+                const isGanho = Math.random() > 0.55;
+                const isPerdido = !isGanho && Math.random() > 0.6;
+                const est = isGanho ? 'Ganho' : (isPerdido ? 'Perdido' : estagios[Math.floor(Math.random() * 3) + 2]);
+                const monthNum = Math.floor(Math.random() * 6) + 1;
+                const dateObj = new Date(2026, monthNum - 1, Math.floor(Math.random() * 28) + 1);
+
+                mock.push({
+                    conta: `Empresa Client ${i}`,
+                    oportunidade: `Oportunidade de Software ${i}`,
+                    estagio: est,
+                    valor: Math.floor(Math.random() * 15000) + 2000,
+                    data: dateObj.toLocaleDateString('pt-BR'),
+                    ano: '2026',
+                    mes: dateObj.toLocaleString('pt-BR', { month: 'short' }),
+                    vendedor: vendedores[Math.floor(Math.random() * vendedores.length)],
+                    bdr: bdrs[Math.floor(Math.random() * bdrs.length)],
+                    origem: origens[Math.floor(Math.random() * origens.length)],
+                });
+            }
+            rawData = mock;
+            populateFiltersOptions();
+            applyFilters();
+        }
+
+        // Populate Dynamic Dropdowns based on XLSX
+        function populateFiltersOptions() {
+            const getUnique = (key) => [...new Set(rawData.map(d => d[key]))].filter(Boolean).sort();
+
+            fillSelect('filterVendedor', getUnique('vendedor'));
+            fillSelect('filterBdr', getUnique('bdr'));
+            fillSelect('filterOrigem', getUnique('origem'));
+            fillSelect('filterEstagio', getUnique('estagio'));
+            fillSelect('filterAno', getUnique('ano'));
+        }
+
+        function fillSelect(elementId, items) {
+            const select = document.getElementById(elementId);
+            const currentVal = select.value;
+            select.innerHTML = `<option value="">Todos</option>`;
+            items.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item;
+                opt.textContent = item;
+                select.appendChild(opt);
+            });
+            select.value = currentVal;
+        }
+
+        // Filters Engine
+        function applyFilters() {
+            const vendedor = document.getElementById('filterVendedor').value;
+            const bdr = document.getElementById('filterBdr').value;
+            const origem = document.getElementById('filterOrigem').value;
+            const estagio = document.getElementById('filterEstagio').value;
+            const ano = document.getElementById('filterAno').value;
+
+            filteredData = rawData.filter(d => {
+                if (vendedor && d.vendedor !== vendedor) return false;
+                if (bdr && d.bdr !== bdr) return false;
+                if (origem && d.origem !== origem) return false;
+                if (estagio && d.estagio !== estagio) return false;
+                if (ano && d.ano !== ano) return false;
+                return true;
+            });
+
+            // Update UI Elements
+            updateKPIs();
+            renderCharts();
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterVendedor').value = '';
+            document.getElementById('filterBdr').value = '';
+            document.getElementById('filterOrigem').value = '';
+            document.getElementById('filterEstagio').value = '';
+            document.getElementById('filterAno').value = '';
+            document.getElementById('searchInput').value = '';
+            activeKpiFilter = 'todas';
+            updateKpiCardStyles();
+            applyFilters();
+        }
+
+        // Select KPI Filter
+        function selectKpiFilter(type) {
+            activeKpiFilter = type;
+            updateKpiCardStyles();
+            renderTable();
+        }
+
+        function updateKpiCardStyles() {
+            document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('border-brand-blue', 'ring-2', 'ring-blue-400'));
+            const activeCard = document.getElementById(`kpi-${activeKpiFilter}`);
+            if (activeCard) {
+                activeCard.classList.add('border-brand-blue', 'ring-2', 'ring-blue-400');
+            }
+        }
+
+        // KPI Metrics Calculation
+        function updateKPIs() {
+            const total = filteredData.length;
+            const ganhas = filteredData.filter(d => d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won') || d.estagio.toLowerCase().includes('fechado'));
+            const perdidas = filteredData.filter(d => d.estagio.toLowerCase().includes('perdido') || d.estagio.toLowerCase().includes('lost'));
+            const abertas = filteredData.filter(d => !ganhas.includes(d) && !perdidas.includes(d));
+
+            const valTotal = filteredData.reduce((acc, d) => acc + d.valor, 0);
+            const valGanhas = ganhas.reduce((acc, d) => acc + d.valor, 0);
+            const valPerdidas = perdidas.reduce((acc, d) => acc + d.valor, 0);
+            const valAbertas = abertas.reduce((acc, d) => acc + d.valor, 0);
+
+            const winRate = total > 0 ? ((ganhas.length / total) * 100).toFixed(1) : 0;
+            const ticketMedio = ganhas.length > 0 ? (valGanhas / ganhas.length) : 0;
+
+            document.getElementById('kpiCriadasVal').textContent = total;
+            document.getElementById('kpiCriadasValor').textContent = formatCurrency(valTotal);
+
+            document.getElementById('kpiGanhasVal').textContent = ganhas.length;
+            document.getElementById('kpiGanhasValor').textContent = formatCurrency(valGanhas);
+            document.getElementById('kpiWinRate').textContent = `${winRate}%`;
+
+            document.getElementById('kpiPerdidasVal').textContent = perdidas.length;
+            document.getElementById('kpiPerdidasValor').textContent = formatCurrency(valPerdidas);
+
+            document.getElementById('kpiAbertasVal').textContent = abertas.length;
+            document.getElementById('kpiAbertasValor').textContent = formatCurrency(valAbertas);
+
+            document.getElementById('kpiTicketMedio').textContent = formatCurrency(ticketMedio);
+        }
+
+        // CHARTS LOGIC
+        function renderCharts() {
+            renderVendedoresChart();
+            renderOrigemChart();
+            renderBdrChart();
+        }
+
+        // Chart 1: Vendedores
+        function renderVendedoresChart() {
+            const ctx = document.getElementById('chartVendedores').getContext('2d');
+            
+            // Group by Vendedor
+            const vendedorMap = {};
+            filteredData.forEach(d => {
+                if (!vendedorMap[d.vendedor]) vendedorMap[d.vendedor] = { criadas: 0, ganhas: 0 };
+                vendedorMap[d.vendedor].criadas += 1;
+                if (d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won')) {
+                    vendedorMap[d.vendedor].ganhas += 1;
+                }
+            });
+
+            const labels = Object.keys(vendedorMap);
+            const dataCriadas = labels.map(l => vendedorMap[l].criadas);
+            const dataGanhas = labels.map(l => vendedorMap[l].ganhas);
+
+            if (chartVendedoresObj) chartVendedoresObj.destroy();
+
+            chartVendedoresObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Oportunidades Criadas', data: dataCriadas, backgroundColor: '#0058A3' },
+                        { label: 'Oportunidades Ganhas', data: dataGanhas, backgroundColor: '#4CAF50' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
+                    scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+
+        // Chart 2: Origem
+        function renderOrigemChart() {
+            const ctx = document.getElementById('chartOrigem').getContext('2d');
+            const origemMap = {};
+            filteredData.forEach(d => {
+                origemMap[d.origem] = (origemMap[d.origem] || 0) + 1;
+            });
+
+            const labels = Object.keys(origemMap);
+            const dataVals = Object.values(origemMap);
+
+            if (chartOrigemObj) chartOrigemObj.destroy();
+
+            chartOrigemObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataVals,
+                        backgroundColor: ['#0058A3', '#4CAF50', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+        }
+
+        // Chart 3: Performance BDR
+        function renderBdrChart() {
+            const ctx = document.getElementById('chartBdr').getContext('2d');
+            const bdrMap = {};
+            filteredData.forEach(d => {
+                bdrMap[d.bdr] = (bdrMap[d.bdr] || 0) + 1;
+            });
+
+            const labels = Object.keys(bdrMap);
+            const dataVals = Object.values(bdrMap);
+
+            if (chartBdrObj) chartBdrObj.destroy();
+
+            chartBdrObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Geração de Leads/Oportunidades',
+                        data: dataVals,
+                        backgroundColor: '#003A6D',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, grid: { color: '#f3f4f6' } }, y: { grid: { display: false } } }
+                }
+            });
+        }
+
+        // TABLE RENDER & PAGINATION
+        function getTableData() {
+            let list = [...filteredData];
+
+            // Apply Micro KPI Filter
+            if (activeKpiFilter === 'ganhas') {
+                list = list.filter(d => d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won'));
+            } else if (activeKpiFilter === 'perdidas') {
+                list = list.filter(d => d.estagio.toLowerCase().includes('perdido') || d.estagio.toLowerCase().includes('lost'));
+            } else if (activeKpiFilter === 'abertas') {
+                list = list.filter(d => !d.estagio.toLowerCase().includes('ganho') && !d.estagio.toLowerCase().includes('won') && !d.estagio.toLowerCase().includes('perdido') && !d.estagio.toLowerCase().includes('lost'));
+            }
+
+            // Apply Search Input
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            if (search) {
+                list = list.filter(d => 
+                    d.conta.toLowerCase().includes(search) || 
+                    d.oportunidade.toLowerCase().includes(search) ||
+                    d.vendedor.toLowerCase().includes(search) ||
+                    d.bdr.toLowerCase().includes(search) ||
+                    d.origem.toLowerCase().includes(search)
+                );
+            }
+
+            // Sorting
+            if (sortColumn) {
+                list.sort((a, b) => {
+                    let valA = a[getPropByColName(sortColumn)];
+                    let valB = b[getPropByColName(sortColumn)];
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    
+                    if (valA < valB) return sortAsc ? -1 : 1;
+                    if (valA > valB) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            return list;
+        }
+
+        function getPropByColName(col) {
+            const map = {
+                'Conta/Cliente': 'conta',
+                'Oportunidade': 'oportunidade',
+                'Estágio/Status': 'estagio',
+                'Valor': 'valor',
+                'Data de Criação': 'data',
+                'Vendedor': 'vendedor',
+                'BDR': 'bdr',
+                'Origem': 'origem'
+            };
+            return map[col] || 'conta';
+        }
+
+        function renderTable() {
+            const data = getTableData();
+            const totalRecords = data.length;
+            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
+
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageData = data.slice(startIdx, startIdx + pageSize);
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Nenhum registro encontrado.</td></tr>`;
+            } else {
+                pageData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-50/50 transition border-b border-gray-100";
+
+                    let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">${row.estagio}</span>`;
+                    const estLower = row.estagio.toLowerCase();
+                    if (estLower.includes('ganho') || estLower.includes('won')) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Ganho</span>`;
+                    } else if (estLower.includes('perdido') || estLower.includes('lost')) {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Perdido</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">${row.estagio}</span>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td class="py-2.5 px-4 font-semibold text-gray-900">${row.conta}</td>
+                        <td class="py-2.5 px-4 text-gray-700">${row.oportunidade}</td>
+                        <td class="py-2.5 px-4">${statusBadge}</td>
+                        <td class="py-2.5 px-4 font-bold text-gray-800">${formatCurrency(row.valor)}</td>
+                        <td class="py-2.5 px-4 text-gray-500">${row.data}</td>
+                        <td class="py-2.5 px-4 text-gray-700">${row.vendedor}</td>
+                        <td class="py-2.5 px-4 text-gray-700">${row.bdr}</td>
+                        <td class="py-2.5 px-4 text-gray-500">${row.origem}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Pagination UI
+            document.getElementById('tableInfo').textContent = `Mostrando ${data.length > 0 ? startIdx + 1 : 0} até ${Math.min(startIdx + pageSize, totalRecords)} de ${totalRecords} registros`;
+            document.getElementById('pageIndicator').textContent = `Página ${currentPage} de ${totalPages}`;
+            document.getElementById('btnPrev').disabled = currentPage === 1;
+            document.getElementById('btnNext').disabled = currentPage === totalPages;
+        }
+
+        function handleSearch() {
+            currentPage = 1;
+            renderTable();
+        }
+
+        function sortTable(colName) {
+            if (sortColumn === colName) {
+                sortAsc = !sortAsc;
+            } else {
+                sortColumn = colName;
+                sortAsc = true;
+            }
+            renderTable();
+        }
+
+        function nextPage() {
+            currentPage++;
+            renderTable();
+        }
+
+        function prevPage() {
+            currentPage--;
+            renderTable();
+        }
+
+        // EXPORT FUNCTIONALITY
+        function exportToCSV() {
+            const data = getTableData();
+            if (data.length === 0) return alert('Nenhum dado para exportar.');
+
+            let csv = 'Conta,Oportunidade,Estagio,Valor,Data,Vendedor,BDR,Origem\n';
+            data.forEach(r => {
+                csv += `"${r.conta}","${r.oportunidade}","${r.estagio}",${r.valor},"${r.data}","${r.vendedor}","${r.bdr}","${r.origem}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute('download', `LifeApps_Relatorio_Comercial_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // UTILS
+        function formatCurrency(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function updateStatus(text, type) {
+            const el = document.getElementById('fileStatus');
+            let icon = 'refresh-cw';
+            let color = 'bg-blue-50 text-blue-700 border-blue-200';
+
+            if (type === 'success') {
+                icon = 'check-circle';
+                color = 'bg-green-50 text-green-700 border-green-200';
+            } else if (type === 'warning') {
+                icon = 'alert-circle';
+                color = 'bg-amber-50 text-amber-700 border-amber-200';
+            } else if (type === 'error') {
+                icon = 'x-circle';
+                color = 'bg-red-50 text-red-700 border-red-200';
+            }
+
+            el.className = `text-xs px-3 py-1.5 rounded-full font-medium border flex items-center gap-1.5 ${color}`;
+            el.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5 ${type === 'loading' ? 'animate-spin' : ''}"></i> <span>${text}</span>`;
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
