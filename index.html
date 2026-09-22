@@ -3,909 +3,806 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Comercial High Performance - Life Apps</title>
+    <title>Painel de Gestão Comercial | LifeApps</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS (xlsx reader) -->
+    <!-- SheetJS (XLSX Reader) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            blue: '#0058A3',
-                            green: '#4CAF50',
-                            darkBlue: '#003A6D',
-                            lightBg: '#F4F7FA'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        .active-kpi {
-            ring-2px: true;
-            border-color: #0058A3 !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 88, 163, 0.2);
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
         }
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        .bg-life-blue { background-color: #0058A3; }
+        .text-life-blue { color: #0058A3; }
+        .border-life-blue { border-color: #0058A3; }
+        .bg-life-green { background-color: #4CAF50; }
+        .text-life-green { color: #4CAF50; }
+        .border-life-green { border-color: #4CAF50; }
+        .kpi-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+        .kpi-active {
+            ring: 2px solid #0058A3;
+            box-shadow: 0 0 0 3px rgba(0, 88, 163, 0.2);
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 pb-12">
 
-    <!-- Top Header -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
-                <!-- SVG Brand Logo derived from Life Apps -->
-                <div class="flex items-center gap-2">
-                    <svg class="h-9 w-auto" viewBox="0 0 400 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Bars -->
-                        <rect x="10" y="65" width="22" height="25" rx="3" fill="#4CAF50" />
-                        <rect x="42" y="40" width="22" height="50" rx="3" fill="#4CAF50" />
-                        <rect x="74" y="52" width="22" height="38" rx="3" fill="#4CAF50" />
-                        <!-- Text: life -->
-                        <path d="M112 12 H128 V88 H112 Z" fill="#0058A3"/>
-                        <path d="M142 32 H158 V88 H142 Z" fill="#0058A3"/>
-                        <circle cx="150" cy="18" r="8" fill="#0058A3"/>
-                        <path d="M172 32 H200 V44 H172 V88 H156 V12 H202 V24 H172 Z" fill="#0058A3"/>
-                        <path d="M210 58 C210 42 222 30 238 30 C254 30 266 42 266 58 V62 H226 C228 72 234 78 244 78 C250 78 256 75 260 70 L266 80 C260 87 250 90 238 90 C222 90 210 78 210 58 Z M250 52 C248 44 242 40 236 40 C230 40 226 44 224 52 Z" fill="#0058A3"/>
-                        <!-- Text: apps -->
-                        <text x="275" y="85" font-family="Arial, sans-serif" font-weight="bold" font-size="48" fill="#4CAF50">apps</text>
+    <!-- Header & Brand Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <!-- Logo LifeApps em SVG de Vetor de Alta Resolução -->
+                <div class="bg-white p-2 rounded-xl flex items-center justify-center border border-slate-100 shadow-sm">
+                    <svg class="h-9 w-auto" viewBox="0 0 300 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="52" width="12" height="18" rx="2" fill="#4CAF50"/>
+                        <rect x="23" y="24" width="12" height="46" rx="2" fill="#4CAF50"/>
+                        <rect x="41" y="38" width="12" height="32" rx="2" fill="#4CAF50"/>
+                        <path d="M62 10 H74 V70 H62 Z" fill="#0058A3"/>
+                        <path d="M82 22 H93 V70 H82 Z" fill="#0058A3"/>
+                        <circle cx="87.5" cy="13" r="5.5" fill="#0058A3"/>
+                        <path d="M102 22 H124 V32 H113 V42 H122 V51 H113 V70 H102 Z" fill="#0058A3"/>
+                        <path d="M129 22 H152 V31 H140 V41 H150 V50 H140 V61 H152 V70 H129 Z" fill="#0058A3"/>
+                        <path d="M165 48 C165 34 175 22 190 22 C205 22 215 34 215 48 C215 62 205 70 190 70 C175 70 165 62 165 48 Z M177 48 C177 56 182 61 190 61 C198 61 203 56 203 48 C203 40 198 31 190 31 C182 31 177 40 177 48 Z" fill="#0058A3"/>
+                        <path d="M222 35 C222 28 227 22 235 22 C242 22 247 27 247 34 V70 H236 V62 C233 67 228 71 221 71 C213 71 207 65 207 57 C207 48 215 43 228 43 H236 V41 C236 36 232 32 226 32 C221 32 217 35 216 38 L206 35 Z M236 50 H229 C223 50 219 52 219 56 C219 60 222 63 227 63 C233 63 236 58 236 53 V50 Z" fill="#4CAF50"/>
+                        <path d="M253 22 H264 V29 C267 24 272 22 279 22 C288 22 294 28 294 38 V70 H283 V40 C283 33 280 30 274 30 C268 30 264 35 264 42 V70 H253 Z" fill="#4CAF50"/>
                     </svg>
                 </div>
-                <span class="hidden md:inline-block h-6 w-px bg-gray-300"></span>
+                <div class="h-8 w-px bg-slate-200"></div>
                 <div>
-                    <h1 class="text-lg font-bold text-gray-900 leading-tight">Painel de Gestão Comercial</h1>
-                    <p class="text-xs text-gray-500">Indicadores Macro & Micro de Alta Performance</p>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">Painel de Gestão Comercial</h1>
+                    <p class="text-xs text-slate-500 font-medium">Indicadores Macro & Micro de Alta Performance</p>
                 </div>
             </div>
 
-            <!-- Actions / Status -->
-            <div class="flex items-center gap-3">
-                <div id="fileStatus" class="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full font-medium border border-blue-200 flex items-center gap-1.5">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
-                    <span>Carregando dados da planilha...</span>
+            <!-- Controles de Leitura da Planilha -->
+            <div class="flex items-center space-x-3">
+                <div id="status-indicator" class="flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span id="status-text">Carregando dados...</span>
                 </div>
-                <label class="cursor-pointer text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm transition flex items-center gap-1.5">
-                    <i data-lucide="upload" class="w-3.5 h-3.5 text-gray-500"></i>
-                    <span>Importar XLSX</span>
-                    <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" class="hidden">
-                </label>
-                <button onclick="reloadSourceFile()" title="Recarregar do Servidor" class="p-1.5 text-gray-500 hover:text-brand-blue hover:bg-gray-100 rounded-lg transition">
-                    <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                <button onclick="carregarPlanilhaServidor()" class="p-2 text-slate-600 hover:text-life-blue hover:bg-slate-100 rounded-lg transition-colors border border-slate-200" title="Recarregar Planilha do Servidor">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                 </button>
+                <label class="cursor-pointer bg-life-blue hover:bg-blue-800 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-sm">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span>Subir XLSX</span>
+                    <input type="file" id="fileInput" accept=".xlsx, .xls" class="hidden" onchange="manipularArquivoUpload(event)">
+                </label>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col gap-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
-        <!-- Global Filters Bar -->
-        <section class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 items-center justify-between">
-            <div class="flex items-center gap-2 text-brand-blue font-semibold text-sm">
-                <i data-lucide="filter" class="w-4 h-4"></i>
-                <span>Filtros Globais:</span>
+        <!-- Barra de Filtros Globais -->
+        <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                <div class="flex items-center space-x-2 text-slate-700 font-semibold text-sm">
+                    <i data-lucide="filter" class="w-4 h-4 text-life-blue"></i>
+                    <span>Filtros Globais</span>
+                </div>
+                <button onclick="limparFiltros()" class="text-xs text-slate-500 hover:text-red-600 flex items-center space-x-1 font-medium">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    <span>Limpar Filtros</span>
+                </button>
             </div>
             
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 flex-1 max-w-5xl">
-                <!-- Filter Vendedor -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Vendedor (Closer)</label>
-                    <select id="filterVendedor" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
-                        <option value="">Todos</option>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Vendedor (Closer)</label>
+                    <select id="filtro-vendedor" onchange="aplicarFiltros()" class="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-life-blue outline-none">
+                        <option value="TODOS">Todos os Vendedores</option>
                     </select>
                 </div>
-                
-                <!-- Filter BDR -->
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">BDR (SDR)</label>
-                    <select id="filterBdr" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
-                        <option value="">Todos</option>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">BDR (SDR)</label>
+                    <select id="filtro-bdr" onchange="aplicarFiltros()" class="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-life-blue outline-none">
+                        <option value="TODOS">Todos os BDRs</option>
                     </select>
                 </div>
-
-                <!-- Filter Origem -->
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Origem</label>
-                    <select id="filterOrigem" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
-                        <option value="">Todas</option>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Origem / Canal</label>
+                    <select id="filtro-origem" onchange="aplicarFiltros()" class="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-life-blue outline-none">
+                        <option value="TODOS">Todas as Origens</option>
                     </select>
                 </div>
-
-                <!-- Filter Estágio -->
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Estágio/Status</label>
-                    <select id="filterEstagio" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
-                        <option value="">Todos</option>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Estágio / Status</label>
+                    <select id="filtro-estagio" onchange="aplicarFiltros()" class="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-life-blue outline-none">
+                        <option value="TODOS">Todos os Estágios</option>
                     </select>
                 </div>
-
-                <!-- Filter Ano/Mês -->
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-500 uppercase tracking-wider mb-1">Ano</label>
-                    <select id="filterAno" onchange="applyFilters()" class="w-full text-xs border-gray-300 rounded-md border p-2 focus:ring-brand-blue focus:border-brand-blue">
-                        <option value="">Todos os Anos</option>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Ano</label>
+                    <select id="filtro-ano" onchange="aplicarFiltros()" class="w-full text-xs font-medium border border-slate-200 rounded-lg p-2 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-life-blue outline-none">
+                        <option value="TODOS">Todos os Anos</option>
                     </select>
                 </div>
             </div>
-
-            <button onclick="resetFilters()" class="text-xs text-gray-500 hover:text-red-600 underline font-medium self-end py-2 px-1">
-                Limpar
-            </button>
         </section>
 
-        <!-- MACRO KPI Cards (Interactive Filter) -->
+        <!-- Cards de Indicadores Macro (KPIs) -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <!-- Criadas -->
-            <div onclick="selectKpiFilter('todas')" id="kpi-todas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-brand-blue transition relative overflow-hidden group">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500">Criadas (Total)</span>
-                    <div class="p-2 bg-blue-50 text-brand-blue rounded-lg group-hover:bg-brand-blue group-hover:text-white transition">
-                        <i data-lucide="folder-plus" class="w-5 h-5"></i>
+            <div id="kpi-criadas" onclick="filtrarPorKpi('CRIADAS')" class="kpi-card bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Criadas (Total)</span>
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <span id="kpiCriadasVal" class="text-2xl font-black text-gray-900">0</span>
-                    <span id="kpiCriadasValor" class="text-xs text-gray-500 font-medium">R$ 0</span>
-                </div>
-                <p class="text-[10px] text-gray-400 mt-1">Clique para ver todas</p>
-                <div class="absolute bottom-0 left-0 right-0 h-1 bg-brand-blue"></div>
+                <div class="text-2xl font-bold text-slate-900" id="val-criadas">0</div>
+                <div class="text-xs font-medium text-slate-500 mt-1" id="val-criadas-val">R$ 0,00</div>
             </div>
 
             <!-- Ganhas -->
-            <div onclick="selectKpiFilter('ganhas')" id="kpi-ganhas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-green-600 transition relative overflow-hidden group">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-green-600">Ganhas</span>
-                    <div class="p-2 bg-green-50 text-green-600 rounded-lg group-hover:bg-green-600 group-hover:text-white transition">
+            <div id="kpi-ganhas" onclick="filtrarPorKpi('GANHAS')" class="kpi-card bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Ganhas</span>
+                    <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
                         <i data-lucide="trophy" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <span id="kpiGanhasVal" class="text-2xl font-black text-gray-900">0</span>
-                    <span id="kpiGanhasValor" class="text-xs text-green-600 font-semibold">R$ 0</span>
+                <div class="text-2xl font-bold text-slate-900" id="val-ganhas">0</div>
+                <div class="flex justify-between items-center mt-1">
+                    <span class="text-xs font-medium text-emerald-600" id="val-ganhas-val">R$ 0,00</span>
+                    <span class="text-xs font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded" id="val-win-rate">0% Win</span>
                 </div>
-                <p class="text-[10px] text-gray-400 mt-1">Taxa de Win: <span id="kpiWinRate" class="font-bold">0%</span></p>
-                <div class="absolute bottom-0 left-0 right-0 h-1 bg-brand-green"></div>
             </div>
 
             <!-- Perdidas -->
-            <div onclick="selectKpiFilter('perdidas')" id="kpi-perdidas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-red-500 transition relative overflow-hidden group">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-red-500">Perdidas</span>
-                    <div class="p-2 bg-red-50 text-red-500 rounded-lg group-hover:bg-red-500 group-hover:text-white transition">
+            <div id="kpi-perdidas" onclick="filtrarPorKpi('PERDIDAS')" class="kpi-card bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Perdidas</span>
+                    <div class="p-2 bg-rose-50 rounded-lg text-rose-600">
                         <i data-lucide="x-circle" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <span id="kpiPerdidasVal" class="text-2xl font-black text-gray-900">0</span>
-                    <span id="kpiPerdidasValor" class="text-xs text-red-500 font-medium">R$ 0</span>
-                </div>
-                <p class="text-[10px] text-gray-400 mt-1">Oportunidades encerradas</p>
-                <div class="absolute bottom-0 left-0 right-0 h-1 bg-red-500"></div>
+                <div class="text-2xl font-bold text-slate-900" id="val-perdidas">0</div>
+                <div class="text-xs font-medium text-rose-600 mt-1" id="val-perdidas-val">R$ 0,00</div>
             </div>
 
-            <!-- Abertas -->
-            <div onclick="selectKpiFilter('abertas')" id="kpi-abertas" class="kpi-card bg-white p-4 rounded-xl border border-gray-200 shadow-sm cursor-pointer hover:border-amber-500 transition relative overflow-hidden group">
-                <div class="flex items-center justify-between">
+            <!-- Em Aberto -->
+            <div id="kpi-abertas" onclick="filtrarPorKpi('ABERTAS')" class="kpi-card bg-white p-4 rounded-xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+                <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Em Aberto</span>
-                    <div class="p-2 bg-amber-50 text-amber-600 rounded-lg group-hover:bg-amber-500 group-hover:text-white transition">
+                    <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
                         <i data-lucide="clock" class="w-5 h-5"></i>
                     </div>
                 </div>
-                <div class="mt-2 flex items-baseline justify-between">
-                    <span id="kpiAbertasVal" class="text-2xl font-black text-gray-900">0</span>
-                    <span id="kpiAbertasValor" class="text-xs text-amber-600 font-medium">R$ 0</span>
-                </div>
-                <p class="text-[10px] text-gray-400 mt-1">Funil em andamento</p>
-                <div class="absolute bottom-0 left-0 right-0 h-1 bg-amber-500"></div>
+                <div class="text-2xl font-bold text-slate-900" id="val-abertas">0</div>
+                <div class="text-xs font-medium text-amber-600 mt-1" id="val-abertas-val">R$ 0,00</div>
             </div>
 
-            <!-- Pipeline Total -->
-            <div class="bg-gradient-to-br from-brand-darkBlue to-brand-blue p-4 rounded-xl border border-gray-200 shadow-sm text-white flex flex-col justify-between">
+            <!-- Ticket Médio -->
+            <div class="bg-life-blue p-4 rounded-xl shadow-sm text-white flex flex-col justify-between">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-blue-100">Ticket Médio</span>
-                    <i data-lucide="dollar-sign" class="w-5 h-5 text-green-400"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-100">Ticket Médio (Ganhos)</span>
+                    <div class="p-2 bg-white/10 rounded-lg text-white">
+                        <i data-lucide="dollar-sign" class="w-5 h-5"></i>
+                    </div>
                 </div>
-                <div class="mt-2">
-                    <div id="kpiTicketMedio" class="text-2xl font-black">R$ 0</div>
-                    <p class="text-[10px] text-blue-200 mt-1">Valor Médio por Contrato Ganhos</p>
-                </div>
+                <div class="text-xl font-bold mt-2" id="val-ticket">R$ 0,00</div>
+                <div class="text-[10px] text-blue-100 opacity-80 mt-1">Valor Médio por Contrato Ganho</div>
             </div>
         </section>
 
-        <!-- CHARTS SECTION -->
+        <!-- Seção de Gráficos -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Monthly Seller Performance -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-4">
+            <!-- Gráfico 1: Performance de Vendedores -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-                            <i data-lucide="user-check" class="w-4 h-4 text-brand-blue"></i>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-life-blue"></i>
                             Performance de Vendedores
                         </h3>
-                        <p class="text-xs text-gray-400">Ganhos/Criados por Mês</p>
+                        <p class="text-xs text-slate-500">Oportunidades por Closer</p>
                     </div>
                 </div>
-                <div class="h-64 relative w-full">
+                <div class="h-64">
                     <canvas id="chartVendedores"></canvas>
                 </div>
             </div>
 
-            <!-- Origem Performance -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-4">
+            <!-- Gráfico 2: Oportunidades por Origem -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-                            <i data-lucide="pie-chart" class="w-4 h-4 text-brand-green"></i>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-life-green"></i>
                             Oportunidades por Origem
                         </h3>
-                        <p class="text-xs text-gray-400">Canais de Aquisição</p>
+                        <p class="text-xs text-slate-500">Distribuição por Canal de Entrada</p>
                     </div>
                 </div>
-                <div class="h-64 relative w-full">
+                <div class="h-64 flex items-center justify-center">
                     <canvas id="chartOrigem"></canvas>
                 </div>
             </div>
 
-            <!-- Monthly BDR Performance -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col justify-between">
-                <div class="flex justify-between items-center mb-4">
+            <!-- Gráfico 3: Performance Mensal BDR -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
-                            <i data-lucide="users" class="w-4 h-4 text-brand-blue"></i>
-                            Performance Mensal de BDRs
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-life-blue"></i>
+                            Geração por BDR / SDR
                         </h3>
-                        <p class="text-xs text-gray-400">Geração de Pipeline</p>
+                        <p class="text-xs text-slate-500">Leads qualificados por BDR</p>
                     </div>
                 </div>
-                <div class="h-64 relative w-full">
-                    <canvas id="chartBdr"></canvas>
+                <div class="h-64">
+                    <canvas id="chartBDR"></canvas>
                 </div>
             </div>
-
         </section>
 
-        <!-- MICRO DETAILED TABLE -->
-        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
-            <!-- Table Header / Actions -->
-            <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+        <!-- Tabela de Detalhamento Micro de Contas -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                        <i data-lucide="table" class="w-4 h-4 text-brand-blue"></i>
-                        Detalhamento de Contas e Oportunidades (Micro)
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="table" class="w-5 h-5 text-life-blue"></i>
+                        Detalhamento Micro de Contas e Oportunidades
                     </h3>
-                    <p class="text-xs text-gray-500">Exibindo registros com base nos filtros selecionados acima</p>
+                    <p class="text-xs text-slate-500">Listagem das contas filtradas com visão completa dos dados</p>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Buscar conta, oportunidade..." class="pl-8 pr-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-brand-blue focus:border-brand-blue w-64">
-                        <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5"></i>
+                <div class="flex items-center space-x-3 w-full md:w-auto">
+                    <div class="relative w-full md:w-64">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                        <input type="text" id="busca-tabela" onkeyup="filtrarTabelaBusca()" placeholder="Buscar conta, título ou BDR..." class="w-full text-xs pl-9 pr-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-life-blue bg-slate-50 focus:bg-white">
                     </div>
-                    <button onclick="exportToCSV()" class="text-xs bg-white border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-1.5 px-3 rounded-lg shadow-sm flex items-center gap-1.5">
-                        <i data-lucide="download" class="w-3.5 h-3.5 text-gray-500"></i>
-                        <span>Exportar</span>
+                    <button onclick="exportarCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg flex items-center space-x-1.5 transition-colors border border-slate-200 shrink-0">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Exportar CSV</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Table Responsive Container -->
-            <div class="overflow-x-auto max-h-[500px]">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead class="bg-gray-100 sticky top-0 z-10 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider">
+            <!-- Tabela -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 text-slate-700 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
                         <tr>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Conta/Cliente')">Conta / Cliente <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Oportunidade')">Oportunidade <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Estágio/Status')">Estágio <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Valor')">Valor <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Data de Criação')">Data <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Vendedor')">Vendedor <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('BDR')">BDR <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
-                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-gray-200" onclick="sortTable('Origem')">Origem <i data-lucide="arrow-up-down" class="inline w-3 h-3 text-gray-400"></i></th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('cliente')">
+                                Conta / Cliente <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('titulo')">
+                                Oportunidade <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('estagio')">
+                                Estágio <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100 text-right" onclick="ordenarTabela('valor')">
+                                Valor <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('data')">
+                                Data Criada <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('vendedor')">
+                                Vendedor <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('bdr')">
+                                BDR <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
+                            <th scope="col" class="py-3 px-4 cursor-pointer hover:bg-slate-100" onclick="ordenarTabela('origem')">
+                                Origem <i data-lucide="arrow-up-down" class="w-3 h-3 inline ml-0.5"></i>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-gray-200 bg-white">
-                        <!-- Dynamic Rows -->
+                    <tbody id="tabela-corpo" class="divide-y divide-slate-100 bg-white">
                         <tr>
-                            <td colspan="8" class="text-center py-8 text-gray-400">Aguardando dados...</td>
+                            <td colspan="8" class="text-center py-8 text-slate-400">Nenhum dado carregado...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Table Footer Pagination -->
-            <div class="p-3 bg-gray-50 border-t border-gray-200 flex flex-wrap justify-between items-center text-xs text-gray-500">
-                <div id="tableInfo">Mostrando 0 de 0 registros</div>
-                <div class="flex items-center gap-2">
-                    <button onclick="prevPage()" id="btnPrev" class="px-2.5 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50">Anterior</button>
-                    <span id="pageIndicator">Página 1</span>
-                    <button onclick="nextPage()" id="btnNext" class="px-2.5 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50">Próxima</button>
+            <!-- Rodapé / Paginação -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                <span id="tabela-info">Exibindo 0 de 0 registros</span>
+                <div class="flex items-center space-x-2">
+                    <button onclick="mudarPagina(-1)" id="btn-prev" class="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-50 font-medium">Anterior</button>
+                    <span id="pagina-atual" class="font-bold text-slate-700">1</span>
+                    <button onclick="mudarPagina(1)" id="btn-next" class="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-100 disabled:opacity-50 font-medium">Próxima</button>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-400 mt-auto">
-        Life Apps &copy; 2026 — Painel de Gestão Comercial Integrado
-    </footer>
-
-    <!-- LOGIC SCRIPT -->
+    <!-- JavaScript para Lógica de Dados e Gráficos -->
     <script>
-        // Global State Variables
-        let rawData = [];
-        let filteredData = [];
-        let activeKpiFilter = 'todas'; // 'todas', 'ganhas', 'perdidas', 'abertas'
-        let sortColumn = '';
-        let sortAsc = true;
-        let currentPage = 1;
-        const pageSize = 15;
+        // Nome padrão do arquivo no mesmo diretório do servidor
+        const NOME_ARQUIVO_PADRAO = 'report-6ff30be5-470a-4eed-b308-76d3a1022541.xlsx';
 
-        // Chart instances
-        let chartVendedoresObj = null;
-        let chartOrigemObj = null;
-        let chartBdrObj = null;
+        let dadosBrutos = [];
+        let dadosFiltrados = [];
+        let kpiFiltroAtual = 'TODOS';
+        
+        let paginaAtual = 1;
+        const itensPorPagina = 15;
+        let ordenacaoAtual = { coluna: 'data', asc: false };
 
-        // Default Excel Filename on Server
-        const SERVER_EXCEL_FILENAME = 'report-6ff30be5-470a-4eed-b308-76d3a1022541.xlsx';
+        // Instâncias dos Gráficos
+        let chartVendedores = null;
+        let chartOrigem = null;
+        let chartBDR = null;
 
-        // Initialize Lucide Icons
-        lucide.createIcons();
-
-        // On Page Load
+        // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
-            reloadSourceFile();
-            
-            // Listener for file input upload (Manual Override)
-            document.getElementById('excelFileInput').addEventListener('change', handleFileUpload);
+            lucide.createIcons();
+            carregarPlanilhaServidor();
         });
 
-        // Load Excel File from Root Server
-        function reloadSourceFile() {
-            updateStatus('Carregando planilha do servidor...', 'loading');
-            fetch(SERVER_EXCEL_FILENAME)
+        // Função para carregar a planilha do servidor automaticamente via fetch
+        function carregarPlanilhaServidor() {
+            atualizarStatus('Carregando planilha do servidor...', 'amber');
+            
+            // Adiciona timestamp para evitar cache do servidor
+            fetch(`${NOME_ARQUIVO_PADRAO}?t=${new Date().getTime()}`)
                 .then(response => {
-                    if (!response.ok) throw new Error("Planilha padrão não encontrada no servidor raiz.");
+                    if (!response.ok) {
+                        throw new Error(`Não foi possível carregar a planilha (${response.status})`);
+                    }
                     return response.arrayBuffer();
                 })
                 .then(buffer => {
-                    processExcelBuffer(buffer);
-                    updateStatus('Planilha atualizada do servidor', 'success');
+                    processarArrayBufferXLSX(buffer);
+                    atualizarStatus(`Conectado ao servidor: ${NOME_ARQUIVO_PADRAO}`, 'emerald');
                 })
                 .catch(err => {
-                    console.warn(err);
-                    updateStatus('Aguardando planilha (use o botão Importar XLSX)', 'warning');
-                    // Load mock sample data if fetch fails (for demonstration)
-                    loadMockData();
+                    console.warn("Aviso ao buscar arquivo automático:", err);
+                    atualizarStatus('Aguardando planilha (Use o botão "Subir XLSX")', 'amber');
                 });
         }
 
-        function handleFileUpload(e) {
+        function manipularArquivoUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
-            updateStatus('Lendo arquivo local...', 'loading');
+
+            atualizarStatus(`Lendo arquivo local: ${file.name}...`, 'amber');
             const reader = new FileReader();
-            reader.onload = function(evt) {
+            reader.onload = (evt) => {
                 try {
-                    processExcelBuffer(evt.target.result);
-                    updateStatus(`Carregado: ${file.name}`, 'success');
-                } catch (error) {
-                    alert("Erro ao processar planilha. Verifique o formato.");
-                    updateStatus('Erro na leitura', 'error');
+                    processarArrayBufferXLSX(evt.target.result);
+                    atualizarStatus(`Carregado localmente: ${file.name}`, 'emerald');
+                } catch (err) {
+                    console.error("Erro ao ler XLSX:", err);
+                    alert("Erro ao processar o arquivo Excel enviado.");
+                    atualizarStatus("Erro no arquivo", "rose");
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Process XLSX Buffer
-        function processExcelBuffer(buffer) {
-            const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
+        // Processa o ArrayBuffer com a biblioteca SheetJS (XLSX)
+        function processarArrayBufferXLSX(buffer) {
+            const data = new Uint8Array(buffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // Pega a primeira aba da planilha
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            
+            // Converte para JSON
             const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-            rawData = json.map(row => normalizeRow(row));
-            populateFiltersOptions();
-            applyFilters();
+            
+            normalizarEGuardarDados(json);
         }
 
-        // Normalize Data Fields from Spreadsheets with dynamic key mapping
-        function normalizeRow(row) {
-            const getVal = (possibleKeys) => {
-                for (let key of possibleKeys) {
-                    const found = Object.keys(row).find(k => k.trim().toLowerCase() === key.toLowerCase());
-                    if (found && row[found] !== undefined && row[found] !== null) return row[found];
+        // Mapeamento e Normalização dos Dados
+        function normalizarEGuardarDados(jsonRaw) {
+            dadosBrutos = jsonRaw.map((row, index) => {
+                // Título & Cliente
+                const titulo = row['Título'] || row['Form - Titulo da Proposta'] || 'Sem Título';
+                const cliente = row['Razão Social.1'] || row['Razão Social'] || row['Razão Social.3'] || titulo;
+
+                // Estágio/Status (Coluna Nome.4 no dataset)
+                const estagioRaw = String(row['Nome.4'] || row['Estágio'] || 'Em Aberto').trim();
+                let estagioCategoria = 'ABERTAS';
+                
+                if (estagioRaw.toLowerCase() === 'ganho') {
+                    estagioCategoria = 'GANHAS';
+                } else if (estagioRaw.toLowerCase() === 'perdido') {
+                    estagioCategoria = 'PERDIDAS';
                 }
-                return '';
-            };
 
-            const rawDate = getVal(['Data de Criação', 'Data Criacao', 'Data', 'Created Date', 'Data Fechamento']);
-            let formattedDate = 'N/I';
-            let year = 'N/I';
-            let month = 'N/I';
+                // Vendedor (Closer) -> Nome de Usuário / Nome de Usuário.4
+                let vendedor = row['Nome de Usuário'] || row['Nome de Usuário.4'] || 'Não Atribuído';
+                vendedor = formatarNomeUsuario(vendedor);
 
-            if (rawDate instanceof Date) {
-                formattedDate = rawDate.toLocaleDateString('pt-BR');
-                year = rawDate.getFullYear().toString();
-                month = rawDate.toLocaleString('pt-BR', { month: 'short' });
-            } else if (typeof rawDate === 'string' && rawDate.trim() !== '') {
-                formattedDate = rawDate;
-                const parts = rawDate.split(/[\/-]/);
-                if (parts.length === 3) {
-                    year = parts[2].length === 4 ? parts[2] : '20' + parts[2];
+                // BDR (SDR) -> Nome de Usuário.1 / Nome de Usuário.2
+                let bdr = row['Nome de Usuário.1'] || row['Nome de Usuário.2'] || 'Não Atribuído';
+                bdr = formatarNomeUsuario(bdr);
+
+                // Origem
+                let origem = 'Outros';
+                const indicacao = String(row['Form - Indicação'] || '').trim();
+                const campanha = String(row['Form - Campanha'] || '').trim();
+                const escopo = String(row['Form - Qual o escopo da oportunidade?'] || '').trim();
+
+                if (indicacao.toLowerCase().includes('mylead') || indicacao.toLowerCase().includes('my lead')) {
+                    origem = 'MyLead';
+                } else if (indicacao.toLowerCase().includes('indicação') || indicacao.toLowerCase().includes('máxima') || indicacao.toLowerCase().includes('csm')) {
+                    origem = 'Indicação / Parceiros';
+                } else if (indicacao.toLowerCase().includes('site') || indicacao.toLowerCase().includes('ia')) {
+                    origem = 'Inbound / Site';
+                } else if (campanha !== '' && !campanha.toLowerCase().includes('sem')) {
+                    origem = 'Campanha (' + campanha + ')';
+                } else if (indicacao !== '') {
+                    origem = 'Outbound / Prospecção';
+                } else if (escopo !== '') {
+                    origem = escopo;
                 }
-            }
 
-            const rawVal = getVal(['Valor', 'Value', 'Valor Oportunidade', 'Montante', 'Amount']);
-            let numVal = 0;
-            if (typeof rawVal === 'number') numVal = rawVal;
-            else if (typeof rawVal === 'string') {
-                numVal = parseFloat(rawVal.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
-            }
+                // Valor
+                let valor = parseFloat(row['Form - Valor'] || row['Valor'] || 0);
+                if (isNaN(valor)) valor = 0;
 
-            const estagio = String(getVal(['Estágio/Status', 'Estágio', 'Estagio', 'Status', 'Fase', 'Stage'])).trim();
+                // Data de criação
+                const dataRaw = String(row['Data de criação'] || row['Form - puca_created_at'] || '');
+                let ano = 'Outros';
+                if (dataRaw.length >= 10) {
+                    const partes = dataRaw.split(' ')[0].split('/');
+                    if (partes.length === 3) ano = partes[2];
+                }
 
-            return {
-                conta: String(getVal(['Conta/Cliente', 'Conta', 'Cliente', 'Account', 'Empresa']) || 'N/A').trim(),
-                oportunidade: String(getVal(['Oportunidade', 'Nome Oportunidade', 'Opportunity', 'Titulo']) || 'Sem Título').trim(),
-                estagio: estagio || 'Em Aberto',
-                valor: numVal,
-                data: formattedDate,
-                ano: year,
-                mes: month,
-                vendedor: String(getVal(['Vendedor', 'Closer', 'Dono da Oportunidade', 'Owner']) || 'Não Atribuído').trim(),
-                bdr: String(getVal(['BDR', 'SDR', 'Pré-vendas', 'Pre-vendas']) || 'Não Atribuído').trim(),
-                origem: String(getVal(['Origem', 'Lead Source', 'Canal', 'Origem Oportunidade']) || 'Outros').trim(),
-                rawRow: row
-            };
-        }
-
-        // Mock Generator fallback if no local file or server file is present initially
-        function loadMockData() {
-            const vendedores = ['Carlos Silva', 'Ana Souza', 'Mariana Lima', 'Roberto Alves'];
-            const bdrs = ['Felipe Melo', 'Beatriz Costa', 'Lucas Rocha'];
-            const origens = ['Inbound', 'Outbound', 'Indicação', 'Eventos', 'Parceiros'];
-            const estagios = ['Ganho', 'Perdido', 'Proposta', 'Em Negociação', 'Qualificado'];
-
-            const mock = [];
-            for (let i = 1; i <= 120; i++) {
-                const isGanho = Math.random() > 0.55;
-                const isPerdido = !isGanho && Math.random() > 0.6;
-                const est = isGanho ? 'Ganho' : (isPerdido ? 'Perdido' : estagios[Math.floor(Math.random() * 3) + 2]);
-                const monthNum = Math.floor(Math.random() * 6) + 1;
-                const dateObj = new Date(2026, monthNum - 1, Math.floor(Math.random() * 28) + 1);
-
-                mock.push({
-                    conta: `Empresa Client ${i}`,
-                    oportunidade: `Oportunidade de Software ${i}`,
-                    estagio: est,
-                    valor: Math.floor(Math.random() * 15000) + 2000,
-                    data: dateObj.toLocaleDateString('pt-BR'),
-                    ano: '2026',
-                    mes: dateObj.toLocaleString('pt-BR', { month: 'short' }),
-                    vendedor: vendedores[Math.floor(Math.random() * vendedores.length)],
-                    bdr: bdrs[Math.floor(Math.random() * bdrs.length)],
-                    origem: origens[Math.floor(Math.random() * origens.length)],
-                });
-            }
-            rawData = mock;
-            populateFiltersOptions();
-            applyFilters();
-        }
-
-        // Populate Dynamic Dropdowns based on XLSX
-        function populateFiltersOptions() {
-            const getUnique = (key) => [...new Set(rawData.map(d => d[key]))].filter(Boolean).sort();
-
-            fillSelect('filterVendedor', getUnique('vendedor'));
-            fillSelect('filterBdr', getUnique('bdr'));
-            fillSelect('filterOrigem', getUnique('origem'));
-            fillSelect('filterEstagio', getUnique('estagio'));
-            fillSelect('filterAno', getUnique('ano'));
-        }
-
-        function fillSelect(elementId, items) {
-            const select = document.getElementById(elementId);
-            const currentVal = select.value;
-            select.innerHTML = `<option value="">Todos</option>`;
-            items.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item;
-                opt.textContent = item;
-                select.appendChild(opt);
+                return {
+                    id: index,
+                    cliente: cliente,
+                    titulo: titulo,
+                    estagio: estagioRaw,
+                    estagioCategoria: estagioCategoria, // GANHAS, PERDIDAS, ABERTAS
+                    valor: valor,
+                    data: dataRaw,
+                    ano: ano,
+                    vendedor: vendedor,
+                    bdr: bdr,
+                    origem: origem
+                };
             });
-            select.value = currentVal;
+
+            preencherSelectsFiltros();
+            aplicarFiltros();
         }
 
-        // Filters Engine
-        function applyFilters() {
-            const vendedor = document.getElementById('filterVendedor').value;
-            const bdr = document.getElementById('filterBdr').value;
-            const origem = document.getElementById('filterOrigem').value;
-            const estagio = document.getElementById('filterEstagio').value;
-            const ano = document.getElementById('filterAno').value;
+        function formatarNomeUsuario(str) {
+            if (!str || str === 'NaN' || str === 'null') return 'Não Atribuído';
+            return str.split('@')[0].replace('.', ' ').replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase());
+        }
 
-            filteredData = rawData.filter(d => {
-                if (vendedor && d.vendedor !== vendedor) return false;
-                if (bdr && d.bdr !== bdr) return false;
-                if (origem && d.origem !== origem) return false;
-                if (estagio && d.estagio !== estagio) return false;
-                if (ano && d.ano !== ano) return false;
+        // Atualizar os selects dos Filtros Globais com valores únicos
+        function preencherSelectsFiltros() {
+            const vendedores = [...new Set(dadosBrutos.map(d => d.vendedor))].sort();
+            const bdrs = [...new Set(dadosBrutos.map(d => d.bdr))].sort();
+            const origens = [...new Set(dadosBrutos.map(d => d.origem))].sort();
+            const estagios = [...new Set(dadosBrutos.map(d => d.estagio))].sort();
+            const anos = [...new Set(dadosBrutos.map(d => d.ano))].sort();
+
+            populerSelect('filtro-vendedor', vendedores, 'Todos os Vendedores');
+            populerSelect('filtro-bdr', bdrs, 'Todos os BDRs');
+            populerSelect('filtro-origem', origens, 'Todas as Origens');
+            populerSelect('filtro-estagio', estagios, 'Todos os Estágios');
+            populerSelect('filtro-ano', anos, 'Todos os Anos');
+        }
+
+        function populerSelect(id, lista, textoPadrao) {
+            const sel = document.getElementById(id);
+            sel.innerHTML = `<option value="TODOS">${textoPadrao}</option>`;
+            lista.forEach(item => {
+                if (item && item !== 'undefined') {
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    sel.appendChild(opt);
+                }
+            });
+        }
+
+        // Aplicação de Filtros
+        function aplicarFiltros() {
+            const selVendedor = document.getElementById('filtro-vendedor').value;
+            const selBdr = document.getElementById('filtro-bdr').value;
+            const selOrigem = document.getElementById('filtro-origem').value;
+            const selEstagio = document.getElementById('filtro-estagio').value;
+            const selAno = document.getElementById('filtro-ano').value;
+
+            dadosFiltrados = dadosBrutos.filter(d => {
+                if (selVendedor !== 'TODOS' && d.vendedor !== selVendedor) return false;
+                if (selBdr !== 'TODOS' && d.bdr !== selBdr) return false;
+                if (selOrigem !== 'TODOS' && d.origem !== selOrigem) return false;
+                if (selEstagio !== 'TODOS' && d.estagio !== selEstagio) return false;
+                if (selAno !== 'TODOS' && d.ano !== selAno) return false;
+
+                // Filtro do KPI Clicado
+                if (kpiFiltroAtual === 'GANHAS' && d.estagioCategoria !== 'GANHAS') return false;
+                if (kpiFiltroAtual === 'PERDIDAS' && d.estagioCategoria !== 'PERDIDAS') return false;
+                if (kpiFiltroAtual === 'ABERTAS' && d.estagioCategoria !== 'ABERTAS') return false;
+
                 return true;
             });
 
-            // Update UI Elements
-            updateKPIs();
-            renderCharts();
-            renderTable();
+            atualizarKPIs();
+            renderizarGraficos();
+            paginaAtual = 1;
+            renderizarTabela();
         }
 
-        function resetFilters() {
-            document.getElementById('filterVendedor').value = '';
-            document.getElementById('filterBdr').value = '';
-            document.getElementById('filterOrigem').value = '';
-            document.getElementById('filterEstagio').value = '';
-            document.getElementById('filterAno').value = '';
-            document.getElementById('searchInput').value = '';
-            activeKpiFilter = 'todas';
-            updateKpiCardStyles();
-            applyFilters();
-        }
-
-        // Select KPI Filter
-        function selectKpiFilter(type) {
-            activeKpiFilter = type;
-            updateKpiCardStyles();
-            renderTable();
-        }
-
-        function updateKpiCardStyles() {
-            document.querySelectorAll('.kpi-card').forEach(card => card.classList.remove('border-brand-blue', 'ring-2', 'ring-blue-400'));
-            const activeCard = document.getElementById(`kpi-${activeKpiFilter}`);
-            if (activeCard) {
-                activeCard.classList.add('border-brand-blue', 'ring-2', 'ring-blue-400');
+        function filtrarPorKpi(tipo) {
+            // Se clicar no mesmo KPI já selecionado, limpa a seleção
+            if (kpiFiltroAtual === tipo) {
+                kpiFiltroAtual = 'TODOS';
+            } else {
+                kpiFiltroAtual = tipo;
             }
+
+            // Destaca visualmente o card ativo
+            document.querySelectorAll('.kpi-card').forEach(el => el.classList.remove('kpi-active'));
+            if (kpiFiltroAtual === 'CRIADAS') document.getElementById('kpi-criadas').classList.add('kpi-active');
+            if (kpiFiltroAtual === 'GANHAS') document.getElementById('kpi-ganhas').classList.add('kpi-active');
+            if (kpiFiltroAtual === 'PERDIDAS') document.getElementById('kpi-perdidas').classList.add('kpi-active');
+            if (kpiFiltroAtual === 'ABERTAS') document.getElementById('kpi-abertas').classList.add('kpi-active');
+
+            aplicarFiltros();
         }
 
-        // KPI Metrics Calculation
-        function updateKPIs() {
-            const total = filteredData.length;
-            const ganhas = filteredData.filter(d => d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won') || d.estagio.toLowerCase().includes('fechado'));
-            const perdidas = filteredData.filter(d => d.estagio.toLowerCase().includes('perdido') || d.estagio.toLowerCase().includes('lost'));
-            const abertas = filteredData.filter(d => !ganhas.includes(d) && !perdidas.includes(d));
-
-            const valTotal = filteredData.reduce((acc, d) => acc + d.valor, 0);
-            const valGanhas = ganhas.reduce((acc, d) => acc + d.valor, 0);
-            const valPerdidas = perdidas.reduce((acc, d) => acc + d.valor, 0);
-            const valAbertas = abertas.reduce((acc, d) => acc + d.valor, 0);
-
-            const winRate = total > 0 ? ((ganhas.length / total) * 100).toFixed(1) : 0;
-            const ticketMedio = ganhas.length > 0 ? (valGanhas / ganhas.length) : 0;
-
-            document.getElementById('kpiCriadasVal').textContent = total;
-            document.getElementById('kpiCriadasValor').textContent = formatCurrency(valTotal);
-
-            document.getElementById('kpiGanhasVal').textContent = ganhas.length;
-            document.getElementById('kpiGanhasValor').textContent = formatCurrency(valGanhas);
-            document.getElementById('kpiWinRate').textContent = `${winRate}%`;
-
-            document.getElementById('kpiPerdidasVal').textContent = perdidas.length;
-            document.getElementById('kpiPerdidasValor').textContent = formatCurrency(valPerdidas);
-
-            document.getElementById('kpiAbertasVal').textContent = abertas.length;
-            document.getElementById('kpiAbertasValor').textContent = formatCurrency(valAbertas);
-
-            document.getElementById('kpiTicketMedio').textContent = formatCurrency(ticketMedio);
+        function limparFiltros() {
+            document.getElementById('filtro-vendedor').value = 'TODOS';
+            document.getElementById('filtro-bdr').value = 'TODOS';
+            document.getElementById('filtro-origem').value = 'TODOS';
+            document.getElementById('filtro-estagio').value = 'TODOS';
+            document.getElementById('filtro-ano').value = 'TODOS';
+            document.getElementById('busca-tabela').value = '';
+            kpiFiltroAtual = 'TODOS';
+            document.querySelectorAll('.kpi-card').forEach(el => el.classList.remove('kpi-active'));
+            aplicarFiltros();
         }
 
-        // CHARTS LOGIC
-        function renderCharts() {
-            renderVendedoresChart();
-            renderOrigemChart();
-            renderBdrChart();
+        // Atualiza Cards KPIs no Topo
+        function atualizarKPIs() {
+            const totalCriadas = dadosFiltrados.length;
+            const valCriadas = dadosFiltrados.reduce((a, b) => a + b.valor, 0);
+
+            const ganhasList = dadosFiltrados.filter(d => d.estagioCategoria === 'GANHAS');
+            const totalGanhas = ganhasList.length;
+            const valGanhas = ganhasList.reduce((a, b) => a + b.valor, 0);
+
+            const perdidasList = dadosFiltrados.filter(d => d.estagioCategoria === 'PERDIDAS');
+            const totalPerdidas = perdidasList.length;
+            const valPerdidas = perdidasList.reduce((a, b) => a + b.valor, 0);
+
+            const abertasList = dadosFiltrados.filter(d => d.estagioCategoria === 'ABERTAS');
+            const totalAbertas = abertasList.length;
+            const valAbertas = abertasList.reduce((a, b) => a + b.valor, 0);
+
+            const winRate = totalCriadas > 0 ? ((totalGanhas / totalCriadas) * 100).toFixed(1) : 0;
+            const ticketMedio = totalGanhas > 0 ? (valGanhas / totalGanhas) : 0;
+
+            document.getElementById('val-criadas').textContent = totalCriadas;
+            document.getElementById('val-criadas-val').textContent = formatarMoeda(valCriadas);
+
+            document.getElementById('val-ganhas').textContent = totalGanhas;
+            document.getElementById('val-ganhas-val').textContent = formatarMoeda(valGanhas);
+            document.getElementById('val-win-rate').textContent = `${winRate}% Win`;
+
+            document.getElementById('val-perdidas').textContent = totalPerdidas;
+            document.getElementById('val-perdidas-val').textContent = formatarMoeda(valPerdidas);
+
+            document.getElementById('val-abertas').textContent = totalAbertas;
+            document.getElementById('val-abertas-val').textContent = formatarMoeda(valAbertas);
+
+            document.getElementById('val-ticket').textContent = formatarMoeda(ticketMedio);
         }
 
-        // Chart 1: Vendedores
-        function renderVendedoresChart() {
-            const ctx = document.getElementById('chartVendedores').getContext('2d');
-            
-            // Group by Vendedor
-            const vendedorMap = {};
-            filteredData.forEach(d => {
-                if (!vendedorMap[d.vendedor]) vendedorMap[d.vendedor] = { criadas: 0, ganhas: 0 };
-                vendedorMap[d.vendedor].criadas += 1;
-                if (d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won')) {
-                    vendedorMap[d.vendedor].ganhas += 1;
-                }
+        // Renderização de Gráficos (Chart.js)
+        function renderizarGraficos() {
+            // 1. Chart Vendedores
+            const vendMap = {};
+            dadosFiltrados.forEach(d => {
+                if (!vendMap[d.vendedor]) vendMap[d.vendedor] = { criadas: 0, ganhas: 0 };
+                vendMap[d.vendedor].criadas++;
+                if (d.estagioCategoria === 'GANHAS') vendMap[d.vendedor].ganhas++;
             });
 
-            const labels = Object.keys(vendedorMap);
-            const dataCriadas = labels.map(l => vendedorMap[l].criadas);
-            const dataGanhas = labels.map(l => vendedorMap[l].ganhas);
+            const vendLabels = Object.keys(vendMap);
+            const vendCriadas = vendLabels.map(l => vendMap[l].criadas);
+            const vendGanhas = vendLabels.map(l => vendMap[l].ganhas);
 
-            if (chartVendedoresObj) chartVendedoresObj.destroy();
-
-            chartVendedoresObj = new Chart(ctx, {
+            if (chartVendedores) chartVendedores.destroy();
+            chartVendedores = new Chart(document.getElementById('chartVendedores'), {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: vendLabels,
                     datasets: [
-                        { label: 'Oportunidades Criadas', data: dataCriadas, backgroundColor: '#0058A3' },
-                        { label: 'Oportunidades Ganhas', data: dataGanhas, backgroundColor: '#4CAF50' }
+                        { label: 'Criadas', data: vendCriadas, backgroundColor: '#0058A3' },
+                        { label: 'Ganhas', data: vendGanhas, backgroundColor: '#4CAF50' }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } },
-                    scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } }
-                }
-            });
-        }
-
-        // Chart 2: Origem
-        function renderOrigemChart() {
-            const ctx = document.getElementById('chartOrigem').getContext('2d');
-            const origemMap = {};
-            filteredData.forEach(d => {
-                origemMap[d.origem] = (origemMap[d.origem] || 0) + 1;
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
 
-            const labels = Object.keys(origemMap);
-            const dataVals = Object.values(origemMap);
+            // 2. Chart Origem
+            const origMap = {};
+            dadosFiltrados.forEach(d => {
+                origMap[d.origem] = (origMap[d.origem] || 0) + 1;
+            });
 
-            if (chartOrigemObj) chartOrigemObj.destroy();
+            const origLabels = Object.keys(origMap);
+            const origValues = Object.values(origMap);
 
-            chartOrigemObj = new Chart(ctx, {
+            if (chartOrigem) chartOrigem.destroy();
+            chartOrigem = new Chart(document.getElementById('chartOrigem'), {
                 type: 'doughnut',
                 data: {
-                    labels: labels,
+                    labels: origLabels,
                     datasets: [{
-                        data: dataVals,
+                        data: origValues,
                         backgroundColor: ['#0058A3', '#4CAF50', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
-        }
 
-        // Chart 3: Performance BDR
-        function renderBdrChart() {
-            const ctx = document.getElementById('chartBdr').getContext('2d');
+            // 3. Chart BDR
             const bdrMap = {};
-            filteredData.forEach(d => {
+            dadosFiltrados.forEach(d => {
                 bdrMap[d.bdr] = (bdrMap[d.bdr] || 0) + 1;
             });
 
-            const labels = Object.keys(bdrMap);
-            const dataVals = Object.values(bdrMap);
+            const bdrLabels = Object.keys(bdrMap);
+            const bdrValues = Object.values(bdrMap);
 
-            if (chartBdrObj) chartBdrObj.destroy();
-
-            chartBdrObj = new Chart(ctx, {
+            if (chartBDR) chartBDR.destroy();
+            chartBDR = new Chart(document.getElementById('chartBDR'), {
                 type: 'bar',
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Geração de Leads/Oportunidades',
-                        data: dataVals,
-                        backgroundColor: '#003A6D',
-                        borderRadius: 4
-                    }]
+                    labels: bdrLabels,
+                    datasets: [{ label: 'Oportunidades', data: bdrValues, backgroundColor: '#0058A3' }]
                 },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { beginAtZero: true, grid: { color: '#f3f4f6' } }, y: { grid: { display: false } } }
-                }
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
-        // TABLE RENDER & PAGINATION
-        function getTableData() {
-            let list = [...filteredData];
-
-            // Apply Micro KPI Filter
-            if (activeKpiFilter === 'ganhas') {
-                list = list.filter(d => d.estagio.toLowerCase().includes('ganho') || d.estagio.toLowerCase().includes('won'));
-            } else if (activeKpiFilter === 'perdidas') {
-                list = list.filter(d => d.estagio.toLowerCase().includes('perdido') || d.estagio.toLowerCase().includes('lost'));
-            } else if (activeKpiFilter === 'abertas') {
-                list = list.filter(d => !d.estagio.toLowerCase().includes('ganho') && !d.estagio.toLowerCase().includes('won') && !d.estagio.toLowerCase().includes('perdido') && !d.estagio.toLowerCase().includes('lost'));
-            }
-
-            // Apply Search Input
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            if (search) {
-                list = list.filter(d => 
-                    d.conta.toLowerCase().includes(search) || 
-                    d.oportunidade.toLowerCase().includes(search) ||
-                    d.vendedor.toLowerCase().includes(search) ||
-                    d.bdr.toLowerCase().includes(search) ||
-                    d.origem.toLowerCase().includes(search)
-                );
-            }
-
-            // Sorting
-            if (sortColumn) {
-                list.sort((a, b) => {
-                    let valA = a[getPropByColName(sortColumn)];
-                    let valB = b[getPropByColName(sortColumn)];
-                    if (typeof valA === 'string') valA = valA.toLowerCase();
-                    if (typeof valB === 'string') valB = valB.toLowerCase();
-                    
-                    if (valA < valB) return sortAsc ? -1 : 1;
-                    if (valA > valB) return sortAsc ? 1 : -1;
-                    return 0;
-                });
-            }
-
-            return list;
-        }
-
-        function getPropByColName(col) {
-            const map = {
-                'Conta/Cliente': 'conta',
-                'Oportunidade': 'oportunidade',
-                'Estágio/Status': 'estagio',
-                'Valor': 'valor',
-                'Data de Criação': 'data',
-                'Vendedor': 'vendedor',
-                'BDR': 'bdr',
-                'Origem': 'origem'
-            };
-            return map[col] || 'conta';
-        }
-
-        function renderTable() {
-            const data = getTableData();
-            const totalRecords = data.length;
-            const totalPages = Math.ceil(totalRecords / pageSize) || 1;
-
-            if (currentPage > totalPages) currentPage = totalPages;
-
-            const startIdx = (currentPage - 1) * pageSize;
-            const pageData = data.slice(startIdx, startIdx + pageSize);
-
-            const tbody = document.getElementById('tableBody');
+        // Tabela de Detalhamento Micro
+        function renderizarTabela() {
+            const tbody = document.getElementById('tabela-corpo');
             tbody.innerHTML = '';
 
-            if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Nenhum registro encontrado.</td></tr>`;
-            } else {
-                pageData.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-blue-50/50 transition border-b border-gray-100";
+            let lista = [...dadosFiltrados];
 
-                    let statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">${row.estagio}</span>`;
-                    const estLower = row.estagio.toLowerCase();
-                    if (estLower.includes('ganho') || estLower.includes('won')) {
-                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Ganho</span>`;
-                    } else if (estLower.includes('perdido') || estLower.includes('lost')) {
-                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Perdido</span>`;
-                    } else {
-                        statusBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">${row.estagio}</span>`;
-                    }
+            // Ordenação
+            lista.sort((a, b) => {
+                let valA = a[ordenacaoAtual.coluna];
+                let valB = b[ordenacaoAtual.coluna];
+
+                if (typeof valA === 'string') valA = valA.toLowerCase();
+                if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                if (valA < valB) return ordenacaoAtual.asc ? -1 : 1;
+                if (valA > valB) return ordenacaoAtual.asc ? 1 : -1;
+                return 0;
+            });
+
+            // Paginação
+            const total = lista.length;
+            const inicio = (paginaAtual - 1) * itensPorPagina;
+            const fim = Math.min(inicio + itensPorPagina, total);
+            const paginaItens = lista.slice(inicio, fim);
+
+            if (paginaItens.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">Nenhum registro encontrado com os filtros atuais.</td></tr>`;
+            } else {
+                paginaItens.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 border-b border-slate-100 transition-colors";
+
+                    let badgeColor = "bg-slate-100 text-slate-700";
+                    if (item.estagioCategoria === 'GANHAS') badgeColor = "bg-emerald-100 text-emerald-800 font-semibold";
+                    if (item.estagioCategoria === 'PERDIDAS') badgeColor = "bg-rose-100 text-rose-800";
+                    if (item.estagioCategoria === 'ABERTAS') badgeColor = "bg-amber-100 text-amber-800";
 
                     tr.innerHTML = `
-                        <td class="py-2.5 px-4 font-semibold text-gray-900">${row.conta}</td>
-                        <td class="py-2.5 px-4 text-gray-700">${row.oportunidade}</td>
-                        <td class="py-2.5 px-4">${statusBadge}</td>
-                        <td class="py-2.5 px-4 font-bold text-gray-800">${formatCurrency(row.valor)}</td>
-                        <td class="py-2.5 px-4 text-gray-500">${row.data}</td>
-                        <td class="py-2.5 px-4 text-gray-700">${row.vendedor}</td>
-                        <td class="py-2.5 px-4 text-gray-700">${row.bdr}</td>
-                        <td class="py-2.5 px-4 text-gray-500">${row.origem}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-900">${escapeHtml(item.cliente)}</td>
+                        <td class="py-3 px-4 text-slate-600 max-w-xs truncate" title="${escapeHtml(item.titulo)}">${escapeHtml(item.titulo)}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[11px] ${badgeColor}">${escapeHtml(item.estagio)}</span></td>
+                        <td class="py-3 px-4 text-right font-medium text-slate-900">${formatarMoeda(item.valor)}</td>
+                        <td class="py-3 px-4 text-slate-500">${escapeHtml(item.data)}</td>
+                        <td class="py-3 px-4 text-slate-700">${escapeHtml(item.vendedor)}</td>
+                        <td class="py-3 px-4 text-slate-700">${escapeHtml(item.bdr)}</td>
+                        <td class="py-3 px-4 text-slate-500">${escapeHtml(item.origem)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
             }
 
-            // Pagination UI
-            document.getElementById('tableInfo').textContent = `Mostrando ${data.length > 0 ? startIdx + 1 : 0} até ${Math.min(startIdx + pageSize, totalRecords)} de ${totalRecords} registros`;
-            document.getElementById('pageIndicator').textContent = `Página ${currentPage} de ${totalPages}`;
-            document.getElementById('btnPrev').disabled = currentPage === 1;
-            document.getElementById('btnNext').disabled = currentPage === totalPages;
+            // Atualiza rodapé
+            document.getElementById('tabela-info').textContent = `Exibindo ${total > 0 ? inicio + 1 : 0} até ${fim} de ${total} registros`;
+            document.getElementById('pagina-atual').textContent = paginaAtual;
+            document.getElementById('btn-prev').disabled = paginaAtual === 1;
+            document.getElementById('btn-next').disabled = fim >= total;
         }
 
-        function handleSearch() {
-            currentPage = 1;
-            renderTable();
+        function mudarPagina(delta) {
+            paginaAtual += delta;
+            renderizarTabela();
         }
 
-        function sortTable(colName) {
-            if (sortColumn === colName) {
-                sortAsc = !sortAsc;
+        function ordenarTabela(coluna) {
+            if (ordenacaoAtual.coluna === coluna) {
+                ordenacaoAtual.asc = !ordenacaoAtual.asc;
             } else {
-                sortColumn = colName;
-                sortAsc = true;
+                ordenacaoAtual.coluna = coluna;
+                ordenacaoAtual.asc = true;
             }
-            renderTable();
+            renderizarTabela();
         }
 
-        function nextPage() {
-            currentPage++;
-            renderTable();
+        function filtrarTabelaBusca() {
+            const termo = document.getElementById('busca-tabela').value.toLowerCase();
+            if (!termo) {
+                aplicarFiltros();
+                return;
+            }
+            dadosFiltrados = dadosBrutos.filter(d => 
+                d.cliente.toLowerCase().includes(termo) ||
+                d.titulo.toLowerCase().includes(termo) ||
+                d.vendedor.toLowerCase().includes(termo) ||
+                d.bdr.toLowerCase().includes(termo) ||
+                d.origem.toLowerCase().includes(termo)
+            );
+            paginaAtual = 1;
+            atualizarKPIs();
+            renderizarGraficos();
+            renderizarTabela();
         }
 
-        function prevPage() {
-            currentPage--;
-            renderTable();
-        }
-
-        // EXPORT FUNCTIONALITY
-        function exportToCSV() {
-            const data = getTableData();
-            if (data.length === 0) return alert('Nenhum dado para exportar.');
-
-            let csv = 'Conta,Oportunidade,Estagio,Valor,Data,Vendedor,BDR,Origem\n';
-            data.forEach(r => {
-                csv += `"${r.conta}","${r.oportunidade}","${r.estagio}",${r.valor},"${r.data}","${r.vendedor}","${r.bdr}","${r.origem}"\n`;
+        function exportarCSV() {
+            if (dadosFiltrados.length === 0) return alert("Não há dados para exportar.");
+            
+            let csv = "Cliente,Oportunidade,Estagio,Valor,Data Criada,Vendedor,BDR,Origem\n";
+            dadosFiltrados.forEach(d => {
+                csv += `"${d.cliente}","${d.titulo}","${d.estagio}",${d.valor},"${d.data}","${d.vendedor}","${d.bdr}","${d.origem}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute('download', `LifeApps_Relatorio_Comercial_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Relatorio_LifeApps_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
         }
 
-        // UTILS
-        function formatCurrency(val) {
+        // Funções Utilitárias
+        function formatarMoeda(val) {
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
         }
 
-        function updateStatus(text, type) {
-            const el = document.getElementById('fileStatus');
-            let icon = 'refresh-cw';
-            let color = 'bg-blue-50 text-blue-700 border-blue-200';
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
 
-            if (type === 'success') {
-                icon = 'check-circle';
-                color = 'bg-green-50 text-green-700 border-green-200';
-            } else if (type === 'warning') {
-                icon = 'alert-circle';
-                color = 'bg-amber-50 text-amber-700 border-amber-200';
-            } else if (type === 'error') {
-                icon = 'x-circle';
-                color = 'bg-red-50 text-red-700 border-red-200';
-            }
+        function atualizarStatus(msg, cor) {
+            const indicator = document.getElementById('status-indicator');
+            const text = document.getElementById('status-text');
+            text.textContent = msg;
 
-            el.className = `text-xs px-3 py-1.5 rounded-full font-medium border flex items-center gap-1.5 ${color}`;
-            el.innerHTML = `<i data-lucide="${icon}" class="w-3.5 h-3.5 ${type === 'loading' ? 'animate-spin' : ''}"></i> <span>${text}</span>`;
-            lucide.createIcons();
+            indicator.className = `flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-full border bg-${cor}-50 text-${cor}-700 border-${cor}-200`;
         }
     </script>
 </body>
